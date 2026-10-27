@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DNS Holiday Planner</title>
+<style>
+  :root{
+    --bg:#F2F8FB; --paper:#FFFFFF; --ink:#1F2A37; --soft:#5B6675; --line:#DCE6EE;
+    --sea:#1677A8; --sea-dark:#0F5A80; --sea-tint:#E3F1F8;
+    --sun:#F2A516; --sun-dark:#C9840A;
+    --travel:#E0457B; --travel-bg:#FDE7EF;
+    --hotel:#F07C1E; --hotel-bg:#FEEEDD;
+    --activity:#C99400; --activity-bg:#FFF5D1;
+    --food:#2FA65A; --food-bg:#E3F5E9;
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.45;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer}
+
+  /* hero */
+  .hero{background:linear-gradient(180deg,#7CC6EA 0%,#BFE5F5 62%,#F6E3B4 62%,#F3D99A 100%);position:relative;overflow:hidden}
+  .hero-inner{max-width:1180px;margin:0 auto;padding:28px 24px 40px;position:relative;z-index:1}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand-mark{width:48px;height:48px;border-radius:14px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 2px 0 rgba(0,0,0,.08)}
+  .brand-name{font-weight:800;font-size:22px;color:#0B3B55}
+  .brand-tag{font-size:13px;color:#0B3B55;opacity:.8}
+  .hero h1{font-size:clamp(30px,5vw,50px);line-height:1.05;margin:26px 0 8px;color:#0B3B55;font-weight:900;letter-spacing:-.5px}
+  .hero p{margin:0;font-size:17px;color:#0B3B55;max-width:560px}
+  .steps{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+  .step{background:#fff;border-radius:999px;padding:8px 16px;font-size:14.5px;font-weight:700;color:#0B3B55;box-shadow:0 2px 0 rgba(0,0,0,.08)}
+  .step b{color:var(--sea)}
+  .sun{position:absolute;right:8%;top:22px;width:110px;height:110px;border-radius:50%;background:#FFD54A;box-shadow:0 0 0 18px rgba(255,213,74,.35)}
+  .palm{position:absolute;right:3%;bottom:0;font-size:120px;line-height:1;opacity:.95}
+
+  /* layout */
+  .layout{max-width:1180px;margin:0 auto;padding:26px 24px 60px;display:grid;grid-template-columns:1fr 340px;gap:26px;align-items:start}
+  .section{margin-bottom:26px}
+  .sec-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .sec-num{width:38px;height:38px;border-radius:50%;color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+  .sec-head h2{margin:0;font-size:21px}
+  .sec-head .pick{font-size:13.5px;color:var(--soft);font-weight:600}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .card{background:var(--paper);border:3px solid var(--line);border-radius:var(--radius);padding:18px;display:flex;gap:16px;align-items:center;position:relative;transition:border-color .15s, transform .15s}
+  .card.sel{transform:translateY(-2px)}
+  .card .ico{width:74px;height:74px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:40px;flex-shrink:0}
+  .card .info{flex:1;min-width:0}
+  .card .name{font-weight:800;font-size:18px}
+  .card .desc{font-size:13.5px;color:var(--soft);margin-top:2px}
+  .card .price{font-size:24px;font-weight:900;margin-top:8px}
+  .card .price small{font-size:13px;font-weight:700;color:var(--soft)}
+  .choose{margin-top:10px;border:2.5px solid currentColor;background:#fff;border-radius:10px;padding:8px 14px;font-weight:800;font-size:14px}
+  .card.sel .choose{color:#fff !important}
+  .tick{position:absolute;top:-12px;right:-12px;width:34px;height:34px;border-radius:50%;color:#fff;font-weight:900;display:none;align-items:center;justify-content:center;font-size:18px;border:3px solid #fff}
+  .card.sel .tick{display:flex}
+
+  /* trip panel */
+  aside{background:var(--paper);border-radius:var(--radius);border:3px solid var(--line);padding:20px;position:sticky;top:18px}
+  aside h2{margin:0 0 2px;font-size:21px}
+  .sub{font-size:13px;color:var(--soft);margin-bottom:14px}
+  .slot{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:2px dashed var(--line)}
+  .slot:last-of-type{border-bottom:none}
+  .slot .dot{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+  .slot .t{flex:1;min-width:0}
+  .slot .k{font-size:12px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--soft)}
+  .slot .v{font-weight:700;font-size:15px}
+  .slot .v.empty{color:#A0A9B4;font-weight:600;font-style:italic}
+  .slot .p{font-weight:900;font-size:16px;white-space:nowrap}
+  .yourjob{background:#FFF5D1;color:#6B5200;border-radius:12px;padding:12px 14px;font-size:14px;font-weight:700;margin-top:14px;line-height:1.4}
+  .actions{display:flex;gap:8px;margin-top:14px}
+  .actions button{flex:1;padding:11px;border-radius:10px;font-weight:800;font-size:14px;border:2.5px solid var(--line);background:#fff;color:var(--ink)}
+  .actions .primary{background:var(--sea);border-color:var(--sea);color:#fff}
+  .actions .primary:hover{background:var(--sea-dark)}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,12px);background:var(--ink);color:#fff;padding:11px 20px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:.2s;z-index:50}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  footer{text-align:center;color:var(--soft);font-size:13px;padding:0 24px 36px}
+
+  @media (max-width:900px){
+    .layout{grid-template-columns:1fr}
+    aside{position:static}
+    .palm{font-size:80px}.sun{width:70px;height:70px}
+  }
+  @media (max-width:560px){
+    .grid{grid-template-columns:1fr}
+    .hero-inner,.layout{padding-left:16px;padding-right:16px}
+    .palm{display:none}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="sun"></div><div class="palm">🌴</div>
+  <div class="hero-inner">
+    <div class="brand"><div class="brand-mark">🧳</div><div><div class="brand-name">DNS Holiday Planner</div><div class="brand-tag">Family weekend getaway · prices in AED</div></div></div>
+    <h1>Plan your weekend trip!</h1>
+    <p>Choose <b>one</b> option from each of the 4 sections. Your choices appear in <b>My Trip</b>.</p>
+    <div class="steps">
+      <div class="step"><b>1</b> Getting There</div><div class="step"><b>2</b> Hotel</div><div class="step"><b>3</b> Fun Activity</div><div class="step"><b>4</b> Food</div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <main id="sections"></main>
+  <aside>
+    <h2>🧳 My Trip</h2>
+    <div class="sub">One choice from each section</div>
+    <div id="slots"></div>
+    <div class="yourjob">✏️ The website does NOT add up your trip. Copy the 4 prices onto your worksheet and add them yourself!</div>
+    <div class="actions"><button id="clear">Start again</button><button class="primary" id="copy">Copy my trip</button></div>
+  </aside>
+</div>
+<footer>DNS Holiday Planner · a pretend travel shop for the Grade 5 Vacation Planner Challenge</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  const CATS = [
+    {id:"travel", n:1, title:"Getting There", icon:"🚌", items:[
+      {id:"bus", name:"Coach Bus Tickets", desc:"Return trip for the family", price:85.45, icon:"🚌"},
+      {id:"car", name:"Rental Car", desc:"1 day, fuel included", price:149.90, icon:"🚗"}]},
+    {id:"hotel", n:2, title:"Hotel (1 night)", icon:"🏨", items:[
+      {id:"city", name:"City Hotel", desc:"Family room, breakfast included", price:349.70, icon:"🏨"},
+      {id:"resort", name:"Beach Resort", desc:"Sea-view family room", price:525.20, icon:"🏖️"}]},
+    {id:"activity", n:3, title:"Fun Activity", icon:"🎢", items:[
+      {id:"water", name:"Water Park", desc:"Family day pass", price:199.60, icon:"🌊"},
+      {id:"safari", name:"Desert Safari", desc:"Evening tour with dinner show", price:245.15, icon:"🐪"}]},
+    {id:"food", n:4, title:"Food", icon:"🍽️", items:[
+      {id:"picnic", name:"Picnic Basket", desc:"Sandwiches, fruit & juice", price:64.35, icon:"🧺"},
+      {id:"dinner", name:"Restaurant Dinner", desc:"Family dinner by the sea", price:132.95, icon:"🍽️"}]}
+  ];
+  const col = id => `var(--${id})`, bg = id => `var(--${id}-bg)`;
+  let pick = {};
+  try{ pick = JSON.parse(localStorage.getItem("dns_trip")||"{}") || {}; }catch(e){ pick = {}; }
+  const save = () => { try{ localStorage.setItem("dns_trip", JSON.stringify(pick)); }catch(e){} };
+  const fmt = n => n.toFixed(2);
+
+  function render(){
+    document.getElementById("sections").innerHTML = CATS.map(c => `
+      <section class="section">
+        <div class="sec-head"><div class="sec-num" style="background:${col(c.id)}">${c.n}</div><h2>${c.title}</h2><span class="pick">· pick ONE</span></div>
+        <div class="grid">${c.items.map(it => {
+          const sel = pick[c.id] === it.id;
+          return `<div class="card${sel ? " sel" : ""}" style="border-color:${sel ? col(c.id) : "var(--line)"}">
+            <div class="tick" style="background:${col(c.id)}">✓</div>
+            <div class="ico" style="background:${bg(c.id)}">${it.icon}</div>
+            <div class="info"><div class="name">${it.name}</div><div class="desc">${it.desc}</div>
+              <div class="price" style="color:${col(c.id)}">${fmt(it.price)} <small>AED</small></div>
+              <button class="choose" data-c="${c.id}" data-i="${it.id}" style="color:${col(c.id)};${sel ? `background:${col(c.id)}` : ""}">${sel ? "✓ Chosen" : "Choose this"}</button></div>
+          </div>`; }).join("")}</div>
+      </section>`).join("");
+    document.querySelectorAll(".choose").forEach(b => b.addEventListener("click", () => {
+      const c = b.dataset.c, i = b.dataset.i;
+      pick[c] = i; save(); render();
+      const it = CATS.find(x => x.id === c).items.find(x => x.id === i);
+      toast(`${it.name} added to My Trip`);
+    }));
+    document.getElementById("slots").innerHTML = CATS.map(c => {
+      const it = c.items.find(x => x.id === pick[c.id]);
+      return `<div class="slot"><div class="dot" style="background:${bg(c.id)}">${it ? it.icon : c.icon}</div>
+        <div class="t"><div class="k">${c.title}</div><div class="v${it ? "" : " empty"}">${it ? it.name : "Not chosen yet"}</div></div>
+        <div class="p" style="color:${col(c.id)}">${it ? fmt(it.price) : ""}</div></div>`;
+    }).join("");
+  }
+
+  let tt;
+  function toast(m){ const t = document.getElementById("toast"); t.textContent = m; t.classList.add("show"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("show"), 1600); }
+
+  document.getElementById("clear").addEventListener("click", () => { pick = {}; save(); render(); });
+  document.getElementById("copy").addEventListener("click", () => {
+    const lines = ["My Trip", ""];
+    CATS.forEach(c => { const it = c.items.find(x => x.id === pick[c.id]); lines.push(`${c.title}: ${it ? it.name + " - " + fmt(it.price) + " AED" : "(not chosen)"}`); });
+    lines.push("", "Now add these up yourself!");
+    const text = lines.join("\n");
+    const done = () => toast("Trip copied! Paste it into your worksheet.");
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, () => toast("Couldn't copy, please write it down."));
+    else toast("Couldn't copy, please write it down.");
+  });
+  render();
+})();
+</script>
+</body>
+</html>
